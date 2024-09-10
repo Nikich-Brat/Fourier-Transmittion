@@ -1,0 +1,89 @@
+unit DFT;
+
+interface
+
+uses unit1, Forms;
+
+
+function GetReal(mas,phase:array of double; i,j:integer):double;
+function GetImag(mas,phase:array of double; i,j:integer):double;
+function DFTDirect(mas:array of double;fd:integer):ArrOfArr;
+function DFTBack(mas:array of double;phase:array of double):Arr;
+
+implementation
+
+function GetReal(mas,phase:array of double; i,j:integer):double;
+begin
+  result := mas[j]*cos((phase[i]*Pi/180)+2*Pi*j*i/(length(mas)));
+end;
+
+function GetImag(mas,phase:array of double; i,j:integer):double;
+begin
+  result := -mas[j]*sin((phase[i]*Pi/180)+2*Pi*j*i/(length(mas)));
+end;
+
+function DFTDirect(mas:array of double;fd:integer):ArrOfArr;
+var i,j,len:integer;
+res:ArrOfArr;
+sumreal:double;
+sumimage:double;
+emptyarr:arr;
+begin
+  len := length(mas);
+  SetLength(res[0],len);
+  SetLength(res[1],len);
+  SetLength(res[2],len);
+  SetLength(res[3],len);
+  SetLength(res[4],len);
+  SetLength(emptyarr,len);
+  for i:=0 to len-1 do begin
+    Application.ProcessMessages;
+    sumreal:=0;
+    sumimage:=0;
+    for j:=0 to len-1 do begin
+      sumreal:=sumreal + GetReal(mas,emptyarr,i,j) ;
+      sumimage:=sumimage + GetImag(mas,emptyarr,i,j);
+    end;
+    res[0,i]:=2*sqrt(sumreal*sumreal+sumimage*sumimage)/len;
+    res[3,i]:=2*sumreal/len;
+    res[4,i]:=2*sumimage/len;
+    res[1,i]:= fd*i/len;  //frequences
+    if (sumreal<>0) then
+      res[2,i]:= arctan(sumimage/sumreal)*180/Pi   //phase
+    else begin
+      if (sumimage>0) then
+        res[2,i]:= 90
+      else if sumimage =0 then
+        res[2,i]:= 0
+      else
+        res[2,i]:= -90;
+    end;
+  end;
+  result := res;
+end;
+
+function DFTBack(mas,phase:array of double):Arr;
+var i,j,len:integer;
+res:Arr;
+sumreal:double;
+sumimage:double;
+begin
+  len := length(mas);
+  SetLength(res,len);
+  for i:=0 to len-1 do begin
+    Application.ProcessMessages;
+    sumreal:=0;
+    sumimage:=0;
+    for j:=0 to len-1 do begin
+      sumreal:=sumreal + GetReal(mas,phase,i,j) ;
+      sumimage:=sumimage + GetImag(mas,phase,i,j);
+    end;
+    res[i]:=sumreal/2;
+  end;
+  result := res;
+end;
+
+
+
+
+end.
